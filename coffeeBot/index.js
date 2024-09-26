@@ -3,7 +3,7 @@ const path = require('node:path');
 const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
 const { token } = require('./config.json');
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 
 client.once(Events.ClientReady, readyClient => {
   console.log(`Ready! Logged in as ${readyClient.user.tag}`);
@@ -28,7 +28,7 @@ for (const folder of commandFolders) {
       console.log(`[PERIGO] o comando no ${filePath} esta faltando as propriedades 'data' ou 'execute' que sao nescessarias.`);
     }
   }
-} 
+}
 
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
@@ -45,9 +45,23 @@ client.on(Events.InteractionCreate, async interaction => {
   } catch (error) {
     console.error(error);
     if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({ content: 'ACONECEU ERRO ENQUANDO RODAVA O COMANDO!!', ephemeral: true });
+      await interaction.followUp({ content: 'ACONECEU ERRO ENQUANTO RODAVA O COMANDO!!', ephemeral: true });
     } else {
-      await interaction.reply({ content: 'ACONECEU ERRO ENQUANDO RODAVA O COMANDO!!', ephemeral: true });
+      await interaction.reply({ content: 'ACONECEU ERRO ENQUANTO RODAVA O COMANDO!!', ephemeral: true });
     }
   }
 });
+
+const usersToDisconnect = {};
+
+client.on('voiceStateUpdate', (oldState, newState) => {
+  if (!oldState.channel && newState.channel) {
+    const memberId = newState.member.id;
+    if (usersToDisconnect[memberId]) {
+      newState.member.voice.disconnect('Você perdeu na roleta russa.');
+      delete usersToDisconnect[memberId];
+    }
+  }
+});
+
+module.exports = { client, usersToDisconnect };

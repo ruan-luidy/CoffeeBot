@@ -42,4 +42,4 @@ module.exports = {
 
     await interaction.reply(response);
   }
-}
+};
