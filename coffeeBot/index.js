@@ -3,7 +3,7 @@ const path = require('node:path');
 const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
 const { token } = require('./config.json');
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates] });
 
 client.once(Events.ClientReady, readyClient => {
   console.log(`Ready! Logged in as ${readyClient.user.tag}`);
@@ -61,6 +61,15 @@ client.on('voiceStateUpdate', (oldState, newState) => {
       newState.member.voice.disconnect('Você perdeu na roleta russa.');
       delete usersToDisconnect[memberId];
     }
+  }
+});
+
+const specificRoleId = 'ID_DO_CARGO'; // Substitua pelo ID do cargo específico
+const specificImageUrl = 'URL_DA_IMAGEM'; // Substitua pela URL da imagem específica
+
+client.on('messageCreate', async message => {
+  if (message.member.roles.cache.has(specificRoleId)) {
+    await message.reply({ files: [specificImageUrl] });
   }
 });
 
